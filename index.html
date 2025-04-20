@@ -1,21 +1,15 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Мой Кликер</title>
+    <title>Кликер Игра</title>
     <style>
         body {
-            font-family: 'Arial', sans-serif;
+            font-family: Arial, sans-serif;
             text-align: center;
             background: linear-gradient(135deg, #1e5799, #2989d8);
             color: white;
             margin: 0;
-            padding: 0;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
+            padding: 20px;
         }
         .container {
             max-width: 600px;
@@ -23,7 +17,6 @@
             padding: 20px;
             background-color: rgba(0, 0, 0, 0.5);
             border-radius: 15px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
         }
         #click-area {
             width: 200px;
@@ -31,179 +24,136 @@
             margin: 20px auto;
             border-radius: 50%;
             background-color: rgba(255, 255, 255, 0.2);
+            cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            cursor: pointer;
-            overflow: hidden;
+            font-size: 24px;
             border: 5px solid gold;
         }
-        #click-area img {
-            max-width: 100%;
-            max-height: 100%;
-            display: none;
-        }
         #balance {
-            font-size: 2.5em;
+            font-size: 32px;
             margin: 20px 0;
             color: gold;
         }
-        .upgrades {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 10px;
-            margin-top: 20px;
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 10px;
+            border-radius: 5px;
+            cursor: pointer;
         }
         .upgrade {
-            background-color: rgba(0, 0, 0, 0.3);
+            background: rgba(0, 0, 0, 0.3);
             padding: 10px;
+            margin: 10px;
             border-radius: 5px;
-            min-width: 120px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        .upgrade:hover {
-            background-color: rgba(0, 0, 0, 0.5);
-        }
-        button {
-            background-color: #4CAF50;
-            border: none;
-            color: white;
-            padding: 10px 20px;
-            text-align: center;
-            text-decoration: none;
             display: inline-block;
-            font-size: 16px;
-            margin: 10px 2px;
-            cursor: pointer;
-            border-radius: 5px;
-        }
-        #custom-image {
-            display: none;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Мой Кликер</h1>
-        
         <div id="balance">0 монет</div>
         
-        <div id="click-area">
-            <span>Кликни меня!</span>
-            <img id="custom-image-display" src="" alt="Custom Image">
-        </div>
+        <div id="click-area">КЛИКАЙ!</div>
         
         <button id="upload-btn">Загрузить своё фото</button>
-        <input type="file" id="custom-image" accept="image/*">
+        <input type="file" id="image-upload" accept="image/*" style="display: none;">
         
-        <div class="upgrades">
-            <div class="upgrade" onclick="buyUpgrade(1)">
-                <h3>Автокликер</h3>
-                <p>+1 монета/сек</p>
-                <p>Цена: 10 монет</p>
-                <p>Куплено: <span id="upgrade-1-count">0</span></p>
-            </div>
-            <div class="upgrade" onclick="buyUpgrade(2)">
-                <h3>Улучшенный клик</h3>
-                <p>+2 монеты за клик</p>
-                <p>Цена: 50 монет</p>
-                <p>Куплено: <span id="upgrade-2-count">0</span></p>
-            </div>
-            <div class="upgrade" onclick="buyUpgrade(3)">
-                <h3>Мега кликер</h3>
-                <p>+5 монет/сек</p>
-                <p>Цена: 100 монет</p>
-                <p>Куплено: <span id="upgrade-3-count">0</span></p>
-            </div>
+        <h2>Улучшения</h2>
+        <div class="upgrade" onclick="buyUpgrade(1)">
+            <h3>Автокликер (+1/сек)</h3>
+            <p>Цена: 10 монет</p>
+            <p>Куплено: <span id="upgrade-1">0</span></p>
+        </div>
+        <div class="upgrade" onclick="buyUpgrade(2)">
+            <h3>Улучшенный клик (+2/клик)</h3>
+            <p>Цена: 50 монет</p>
+            <p>Куплено: <span id="upgrade-2">0</span></p>
         </div>
     </div>
 
     <script>
-        // Загрузка сохранённых данных
-        let coins = parseInt(localStorage.getItem('coins')) || 0;
-        let upgrades = JSON.parse(localStorage.getItem('upgrades')) || {1: 0, 2: 0, 3: 0};
-        let customImage = localStorage.getItem('customImage') || '';
+        // Данные игры
+        let coins = localStorage.getItem('coins') || 0;
+        let upgrades = JSON.parse(localStorage.getItem('upgrades')) || {1: 0, 2: 0};
         
-        // Обновление интерфейса
-        function updateUI() {
-            document.getElementById('balance').textContent = coins + ' монет';
-            document.getElementById('upgrade-1-count').textContent = upgrades[1];
-            document.getElementById('upgrade-2-count').textContent = upgrades[2];
-            document.getElementById('upgrade-3-count').textContent = upgrades[3];
-            
-            if (customImage) {
-                document.querySelector('#click-area span').style.display = 'none';
-                document.getElementById('custom-image-display').style.display = 'block';
-                document.getElementById('custom-image-display').src = customImage;
-            }
-        }
+        // Элементы интерфейса
+        const clickArea = document.getElementById('click-area');
+        const balanceDisplay = document.getElementById('balance');
+        const uploadBtn = document.getElementById('upload-btn');
+        const imageUpload = document.getElementById('image-upload');
         
-        // Клик по области
-        document.getElementById('click-area').addEventListener('click', function() {
-            let clickValue = 1 + upgrades[2] * 2;
-            coins += clickValue;
-            localStorage.setItem('coins', coins);
-            updateUI();
-            
-            // Анимация клика
-            this.style.transform = 'scale(0.95)';
-            setTimeout(() => {
-                this.style.transform = 'scale(1)';
-            }, 100);
+        // Инициализация
+        updateDisplay();
+        startAutoClicker();
+        
+        // Обработчики событий
+        clickArea.addEventListener('click', () => {
+            coins = parseInt(coins) + 1 + upgrades[2] * 2;
+            saveGame();
+            updateDisplay();
+            animateClick();
         });
         
-        // Покупка улучшения
-        function buyUpgrade(type) {
-            let cost = 0;
-            switch(type) {
-                case 1: cost = 10 + upgrades[1] * 10; break;
-                case 2: cost = 50 + upgrades[2] * 50; break;
-                case 3: cost = 100 + upgrades[3] * 100; break;
-            }
-            
-            if (coins >= cost) {
-                coins -= cost;
-                upgrades[type]++;
-                localStorage.setItem('coins', coins);
-                localStorage.setItem('upgrades', JSON.stringify(upgrades));
-                updateUI();
-            } else {
-                alert('Недостаточно монет!');
-            }
-        }
+        uploadBtn.addEventListener('click', () => imageUpload.click());
         
-        // Загрузка своего изображения
-        document.getElementById('upload-btn').addEventListener('click', function() {
-            document.getElementById('custom-image').click();
-        });
-        
-        document.getElementById('custom-image').addEventListener('change', function(e) {
+        imageUpload.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (file) {
                 const reader = new FileReader();
-                reader.onload = function(event) {
-                    customImage = event.target.result;
-                    localStorage.setItem('customImage', customImage);
-                    updateUI();
+                reader.onload = (event) => {
+                    clickArea.style.backgroundImage = `url(${event.target.result})`;
+                    clickArea.innerHTML = '';
                 };
                 reader.readAsDataURL(file);
             }
         });
         
-        // Автокликер
-        setInterval(function() {
-            let passiveIncome = upgrades[1] * 1 + upgrades[3] * 5;
-            if (passiveIncome > 0) {
-                coins += passiveIncome;
-                localStorage.setItem('coins', coins);
-                updateUI();
+        // Функции игры
+        function buyUpgrade(type) {
+            const costs = {1: 10, 2: 50};
+            if (coins >= costs[type]) {
+                coins -= costs[type];
+                upgrades[type] = (upgrades[type] || 0) + 1;
+                saveGame();
+                updateDisplay();
+            } else {
+                alert('Недостаточно монет!');
             }
-        }, 1000);
+        }
         
-        // Инициализация
-        updateUI();
+        function animateClick() {
+            clickArea.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                clickArea.style.transform = 'scale(1)';
+            }, 100);
+        }
+        
+        function updateDisplay() {
+            balanceDisplay.textContent = `${coins} монет`;
+            document.getElementById('upgrade-1').textContent = upgrades[1] || 0;
+            document.getElementById('upgrade-2').textContent = upgrades[2] || 0;
+        }
+        
+        function saveGame() {
+            localStorage.setItem('coins', coins);
+            localStorage.setItem('upgrades', JSON.stringify(upgrades));
+        }
+        
+        function startAutoClicker() {
+            setInterval(() => {
+                if (upgrades[1] > 0) {
+                    coins = parseInt(coins) + upgrades[1];
+                    saveGame();
+                    updateDisplay();
+                }
+            }, 1000);
+        }
     </script>
 </body>
 </html>
