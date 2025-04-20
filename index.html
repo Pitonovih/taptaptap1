@@ -1,159 +1,404 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
-    <title>Кликер Игра</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Dark Lime Clicker</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            background: linear-gradient(135deg, #1e5799, #2989d8);
-            color: white;
+        :root {
+            --bg-dark: #121212;
+            --accent-lime: #00FF00;
+            --accent-dark-lime: #00CC00;
+            --text-light: #E0E0E0;
+            --shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        * {
             margin: 0;
-            padding: 20px;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
         }
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-light);
+            height: 100vh;
+            overflow: hidden;
+            touch-action: manipulation;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-image: radial-gradient(circle at center, #1A1A1A 0%, #000 100%);
+        }
+        
         .container {
-            max-width: 600px;
-            margin: 0 auto;
+            width: 100%;
+            max-width: 450px;
             padding: 20px;
-            background-color: rgba(0, 0, 0, 0.5);
-            border-radius: 15px;
+            text-align: center;
         }
+        
+        h1 {
+            color: var(--accent-lime);
+            margin-bottom: 20px;
+            font-size: 2.2rem;
+            text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+        }
+        
+        #balance {
+            font-size: 2.5rem;
+            margin: 20px 0;
+            color: var(--accent-lime);
+            font-weight: bold;
+            text-shadow: 0 0 8px rgba(0, 255, 0, 0.7);
+        }
+        
         #click-area {
             width: 200px;
             height: 200px;
-            margin: 20px auto;
+            margin: 0 auto 30px;
             border-radius: 50%;
-            background-color: rgba(255, 255, 255, 0.2);
-            cursor: pointer;
+            background: linear-gradient(145deg, #1E1E1E, #2A2A2A);
+            box-shadow: var(--shadow), inset 0 0 15px rgba(0, 0, 0, 0.5);
             display: flex;
-            align-items: center;
             justify-content: center;
-            font-size: 24px;
-            border: 5px solid gold;
-        }
-        #balance {
-            font-size: 32px;
-            margin: 20px 0;
-            color: gold;
-        }
-        button {
-            background: #4CAF50;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            margin: 10px;
-            border-radius: 5px;
+            align-items: center;
             cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            border: 4px solid var(--accent-dark-lime);
+            transition: transform 0.1s, box-shadow 0.3s;
         }
+        
+        #click-area:active {
+            transform: scale(0.95);
+            box-shadow: 0 0 20px var(--accent-lime), inset 0 0 20px rgba(0, 255, 0, 0.3);
+        }
+        
+        #click-text {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--accent-lime);
+            z-index: 2;
+        }
+        
+        #custom-image {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: none;
+        }
+        
+        .btn {
+            background: linear-gradient(to bottom, var(--accent-dark-lime), var(--accent-lime));
+            color: black;
+            border: none;
+            padding: 12px 20px;
+            margin: 10px 5px;
+            border-radius: 50px;
+            font-weight: bold;
+            box-shadow: var(--shadow);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .btn:active {
+            transform: scale(0.95);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        
+        .upgrades {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
         .upgrade {
-            background: rgba(0, 0, 0, 0.3);
-            padding: 10px;
-            margin: 10px;
-            border-radius: 5px;
-            display: inline-block;
+            background: rgba(30, 30, 30, 0.8);
+            border: 1px solid var(--accent-dark-lime);
+            border-radius: 10px;
+            padding: 12px;
+            transition: all 0.3s;
+        }
+        
+        .upgrade:active {
+            background: rgba(0, 255, 0, 0.1);
+        }
+        
+        .upgrade h3 {
+            color: var(--accent-lime);
+            margin-bottom: 5px;
+        }
+        
+        .upgrade p {
+            font-size: 0.9rem;
+        }
+        
+        #particles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        /* Анимация клика */
+        @keyframes clickEffect {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(3); opacity: 0; }
+        }
+        
+        .click-effect {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: rgba(0, 255, 0, 0.5);
+            animation: clickEffect 0.6s ease-out;
+            pointer-events: none;
         }
     </style>
 </head>
 <body>
+    <div id="particles"></div>
+    
     <div class="container">
-        <h1>Мой Кликер</h1>
-        <div id="balance">0 монет</div>
+        <h1>DARK LIME CLICKER</h1>
+        <div id="balance">0</div>
         
-        <div id="click-area">КЛИКАЙ!</div>
+        <div id="click-area">
+            <div id="click-text">TAP!</div>
+            <img id="custom-image" src="" alt="Custom Image">
+        </div>
         
-        <button id="upload-btn">Загрузить своё фото</button>
+        <button class="btn" id="upload-btn">SET IMAGE</button>
         <input type="file" id="image-upload" accept="image/*" style="display: none;">
         
-        <h2>Улучшения</h2>
-        <div class="upgrade" onclick="buyUpgrade(1)">
-            <h3>Автокликер (+1/сек)</h3>
-            <p>Цена: 10 монет</p>
-            <p>Куплено: <span id="upgrade-1">0</span></p>
-        </div>
-        <div class="upgrade" onclick="buyUpgrade(2)">
-            <h3>Улучшенный клик (+2/клик)</h3>
-            <p>Цена: 50 монет</p>
-            <p>Куплено: <span id="upgrade-2">0</span></p>
+        <div class="upgrades">
+            <div class="upgrade" onclick="buyUpgrade(1)">
+                <h3>AUTO CLICKER (+1/s)</h3>
+                <p>Price: <span class="price">10</span></p>
+                <p>Owned: <span id="upgrade-1">0</span></p>
+            </div>
+            <div class="upgrade" onclick="buyUpgrade(2)">
+                <h3>DOUBLE TAP (+2/tap)</h3>
+                <p>Price: <span class="price">50</span></p>
+                <p>Owned: <span id="upgrade-2">0</span></p>
+            </div>
+            <div class="upgrade" onclick="buyUpgrade(3)">
+                <h3>MEGA CLICKER (+5/s)</h3>
+                <p>Price: <span class="price">100</span></p>
+                <p>Owned: <span id="upgrade-3">0</span></p>
+            </div>
         </div>
     </div>
 
     <script>
-        // Данные игры
-        let coins = localStorage.getItem('coins') || 0;
-        let upgrades = JSON.parse(localStorage.getItem('upgrades')) || {1: 0, 2: 0};
-        
-        // Элементы интерфейса
-        const clickArea = document.getElementById('click-area');
-        const balanceDisplay = document.getElementById('balance');
-        const uploadBtn = document.getElementById('upload-btn');
-        const imageUpload = document.getElementById('image-upload');
-        
-        // Инициализация
-        updateDisplay();
-        startAutoClicker();
-        
-        // Обработчики событий
-        clickArea.addEventListener('click', () => {
-            coins = parseInt(coins) + 1 + upgrades[2] * 2;
-            saveGame();
-            updateDisplay();
-            animateClick();
-        });
-        
-        uploadBtn.addEventListener('click', () => imageUpload.click());
-        
-        imageUpload.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    clickArea.style.backgroundImage = `url(${event.target.result})`;
-                    clickArea.innerHTML = '';
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-        
-        // Функции игры
-        function buyUpgrade(type) {
-            const costs = {1: 10, 2: 50};
-            if (coins >= costs[type]) {
-                coins -= costs[type];
-                upgrades[type] = (upgrades[type] || 0) + 1;
-                saveGame();
-                updateDisplay();
-            } else {
-                alert('Недостаточно монет!');
-            }
-        }
-        
-        function animateClick() {
-            clickArea.style.transform = 'scale(0.95)';
-            setTimeout(() => {
-                clickArea.style.transform = 'scale(1)';
-            }, 100);
-        }
-        
-        function updateDisplay() {
-            balanceDisplay.textContent = `${coins} монет`;
-            document.getElementById('upgrade-1').textContent = upgrades[1] || 0;
-            document.getElementById('upgrade-2').textContent = upgrades[2] || 0;
-        }
-        
-        function saveGame() {
-            localStorage.setItem('coins', coins);
-            localStorage.setItem('upgrades', JSON.stringify(upgrades));
-        }
-        
-        function startAutoClicker() {
-            setInterval(() => {
-                if (upgrades[1] > 0) {
-                    coins = parseInt(coins) + upgrades[1];
-                    saveGame();
-                    updateDisplay();
+        // Супер-оптимизация под мобильные устройства
+        document.addEventListener('DOMContentLoaded', () => {
+            // Данные игры
+            let coins = parseInt(localStorage.getItem('coins')) || 0;
+            let upgrades = JSON.parse(localStorage.getItem('upgrades')) || {1: 0, 2: 0, 3: 0};
+            let customImage = localStorage.getItem('customImage') || null;
+            
+            // Элементы
+            const clickArea = document.getElementById('click-area');
+            const clickText = document.getElementById('click-text');
+            const balanceDisplay = document.getElementById('balance');
+            const uploadBtn = document.getElementById('upload-btn');
+            const imageUpload = document.getElementById('image-upload');
+            const customImageDisplay = document.getElementById('custom-image');
+            
+            // Инициализация
+            updateUI();
+            startAutoClicker();
+            initParticles();
+            
+            // Обработчики событий (оптимизированные для touch)
+            clickArea.addEventListener('touchstart', handleTap, {passive: true});
+            clickArea.addEventListener('mousedown', handleTap);
+            
+            uploadBtn.addEventListener('click', () => imageUpload.click());
+            
+            imageUpload.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        customImage = event.target.result;
+                        localStorage.setItem('customImage', customImage);
+                        applyCustomImage();
+                    };
+                    reader.readAsDataURL(file);
                 }
-            }, 1000);
-        }
+            });
+            
+            // Функции игры
+            function handleTap(e) {
+                e.preventDefault();
+                
+                // Анимация клика
+                createClickEffect(e);
+                
+                // Добавление монет
+                const tapValue = 1 + upgrades[2] * 2;
+                coins += tapValue;
+                
+                // Обновление UI
+                balanceDisplay.textContent = formatNumber(coins);
+                balanceDisplay.style.transform = 'scale(1.1)';
+                setTimeout(() => {
+                    balanceDisplay.style.transform = 'scale(1)';
+                }, 100);
+                
+                // Сохранение
+                saveGame();
+            }
+            
+            function createClickEffect(e) {
+                const effect = document.createElement('div');
+                effect.className = 'click-effect';
+                
+                // Позиционирование для touch/mouse
+                const rect = clickArea.getBoundingClientRect();
+                const x = (e.clientX || e.touches[0].clientX) - rect.left;
+                const y = (e.clientY || e.touches[0].clientY) - rect.top;
+                
+                effect.style.left = `${x - 10}px`;
+                effect.style.top = `${y - 10}px`;
+                clickArea.appendChild(effect);
+                
+                // Удаление после анимации
+                setTimeout(() => {
+                    effect.remove();
+                }, 600);
+            }
+            
+            function buyUpgrade(type) {
+                const cost = calculateCost(type);
+                if (coins >= cost) {
+                    coins -= cost;
+                    upgrades[type] = (upgrades[type] || 0) + 1;
+                    saveGame();
+                    updateUI();
+                    
+                    // Анимация покупки
+                    const upgradeEl = document.querySelector(`#upgrade-${type}`);
+                    upgradeEl.style.color = 'var(--accent-lime)';
+                    setTimeout(() => {
+                        upgradeEl.style.color = 'var(--text-light)';
+                    }, 500);
+                } else {
+                    // Эффект "не хватает денег"
+                    balanceDisplay.style.color = 'red';
+                    setTimeout(() => {
+                        balanceDisplay.style.color = 'var(--accent-lime)';
+                    }, 500);
+                }
+            }
+            
+            function calculateCost(type) {
+                const basePrices = {1: 10, 2: 50, 3: 100};
+                return basePrices[type] * Math.pow(1.5, upgrades[type] || 0);
+            }
+            
+            function updateUI() {
+                balanceDisplay.textContent = formatNumber(coins);
+                
+                // Обновление улучшений
+                for (let i = 1; i <= 3; i++) {
+                    const el = document.getElementById(`upgrade-${i}`);
+                    if (el) {
+                        el.textContent = upgrades[i] || 0;
+                        el.parentNode.querySelector('.price').textContent = 
+                            Math.floor(calculateCost(i));
+                    }
+                }
+                
+                // Применение кастомного изображения
+                applyCustomImage();
+            }
+            
+            function applyCustomImage() {
+                if (customImage) {
+                    customImageDisplay.src = customImage;
+                    customImageDisplay.style.display = 'block';
+                    clickText.style.display = 'none';
+                }
+            }
+            
+            function saveGame() {
+                localStorage.setItem('coins', coins);
+                localStorage.setItem('upgrades', JSON.stringify(upgrades));
+            }
+            
+            function startAutoClicker() {
+                setInterval(() => {
+                    const passiveIncome = upgrades[1] * 1 + upgrades[3] * 5;
+                    if (passiveIncome > 0) {
+                        coins += passiveIncome;
+                        balanceDisplay.textContent = formatNumber(coins);
+                        saveGame();
+                    }
+                }, 1000);
+            }
+            
+            function formatNumber(num) {
+                return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+            }
+            
+            function initParticles() {
+                const canvas = document.getElementById('particles');
+                const ctx = canvas.getContext('2d');
+                
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                
+                const particles = [];
+                const particleCount = Math.floor(window.innerWidth / 10);
+                
+                for (let i = 0; i < particleCount; i++) {
+                    particles.push({
+                        x: Math.random() * canvas.width,
+                        y: Math.random() * canvas.height,
+                        size: Math.random() * 2 + 0.5,
+                        speed: Math.random() * 0.5 + 0.1,
+                        color: `rgba(0, 255, 0, ${Math.random() * 0.2 + 0.05})`
+                    });
+                }
+                
+                function animate() {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    
+                    particles.forEach(p => {
+                        p.y -= p.speed;
+                        if (p.y < 0) {
+                            p.y = canvas.height;
+                            p.x = Math.random() * canvas.width;
+                        }
+                        
+                        ctx.fillStyle = p.color;
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                        ctx.fill();
+                    });
+                    
+                    requestAnimationFrame(animate);
+                }
+                
+                animate();
+                
+                window.addEventListener('resize', () => {
+                    canvas.width = window.innerWidth;
+                    canvas.height = window.innerHeight;
+                });
+            }
+        });
     </script>
 </body>
 </html>
